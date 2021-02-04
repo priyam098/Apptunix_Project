@@ -1,0 +1,22 @@
+{
+  "name": "apptunux_project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/priyam098/Apptunux_Project.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/priyam098/Apptunux_Project/issues"
+  },
+  "homepage": "https://github.com/priyam098/Apptunux_Project#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
