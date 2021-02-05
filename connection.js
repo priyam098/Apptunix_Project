@@ -2,11 +2,11 @@ const mongoose = require('mongoose');
 var connect = function() {
     return new Promise((resolve, reject) => {
         mongoose.connect('mongodb://localhost:27017/apptunixTest', {useUnifiedTopology: true, useNewUrlParser: true, useFindAndModify: false}, (error, result) => {
-            if (error) {
+          (error);  if (error) {
                 console.log(error);
-                return reject(error);
+                return reject
             }
-            process.conn1 = mongoose.connection;
+            process.conn1 = mongoose.connection;        
             console.log('database successfully connected!');
             return resolve(true);
         });

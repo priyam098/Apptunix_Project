@@ -8,7 +8,7 @@ connection.connect();
 
 app.post('/login',userServices.login);
 app.post('/signup',userServices.signup);
-app.post('/update',userServices.update);
-app.get('/findUser',userServices.findUser);
+app.post('/update',userServices.authenticateToken,userServices.update);
+app.get('/findUser',userServices.authenticateToken,userServices.findUser);
 
 app.listen(3000);
