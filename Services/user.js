@@ -25,7 +25,6 @@ const login = async (req, res) => {
         if (!email || !password) res.json('enter correct details');//
         const existUser = await userSchema.userModel.findOne({ email: email })
         console.log(existUser);
-
         bcrypt.compare(password, existUser.password, function (err, isMatch) {
             if (!isMatch) {
                 return res.status(400).json({
@@ -33,9 +32,8 @@ const login = async (req, res) => {
                     message: 'password mismatch'
                 })
             } else {
-                // console.log(dataObj1);
+
                 const accessToken = jwt.sign({_id:existUser._id}, config.ACCESS_TOKEN_SECRET);
-                // res.json({accessToken : accessToken});
                 return res.status(200).json({
                     accessToken : accessToken,
                     status: true,
@@ -49,7 +47,21 @@ const login = async (req, res) => {
         res.send({ status: 400, message: "login failed" });
     }
 };
-
+const profile = async (req,res)=>{
+    console.log("hello");
+    console.log(req.dataObj._id);
+    try{
+    const result = await userSchema.userModel.findById({_id:req.dataObj._id}).lean()
+    // console.log({...result});
+    // console.log("resy",result);
+    result["compute"] = 20;
+    console.log(result);
+    res.send(result);
+    }
+    catch (err) {
+        res.send(console.log(err));
+    }
+};
 const signup = async (req, res) => {
     try {
         const Fname = req.body.Fname;
@@ -70,13 +82,15 @@ const signup = async (req, res) => {
             phone: phone
         };
         console.log(dataObj);
-        const result = await joiValidSignUp.validateAsync(req.body);
+        await joiValidSignUp.validateAsync(req.body);
         console.log("validation sucessfull");
         const existUser = await userSchema.userModel.findOne({email:email})
         console.log('existing user:'+ existUser);
         if(!existUser){
         const dataAdded = await userSchema.userModel.create(dataObj);
-        res.send({status:200,message:"SignUp sucessful"});
+        console.log(dataAdded);
+        const accessToken = jwt.sign({_id : dataAdded._id},config.ACCESS_TOKEN_SECRET)
+        res.send({accessToken:accessToken,status:200,message:"SignUp sucessful"});
         }
         else res.json({status:400,messagr:"EmailId already exist"});
     } catch (error) {
@@ -96,8 +110,8 @@ const update = async (req, res) => {
             throw err;
         }
         else {
-            res.send('record updated sucessfully ' + update1);
-            console.log(update1);
+            res.send('record updated sucessfully ' + employee);
+            console.log(employee);
         }
     })
        
@@ -118,7 +132,82 @@ const findUser = async (req, res) => {
         res.json({status:400,message:"error"})
     }
 }
-
+const updateAll = async(req, res)=>{
+    try{
+        const result = await userSchema.userModel.updateMany({},req.body)
+        res.send("records updated")
+        }
+    catch(err){
+        res.send({status:400,message:"updation failed"});
+    }
+}
+const deleteDoc = async(req,res)=>{
+    try{
+    const query = req.dataObj._id;
+    console.log(query);
+    const result = await userSchema.userModel.deleteOne({_id:query},(err,result)=>{
+        if(result) res.send({status:200,message:"Document deleted"});
+        res.send({status:400,message:"error"})
+    })
+    console.log(result);
+    }
+    catch(err) {res.send({error:err})};   
+}
+const deleteMany = async(req,res)=>{
+    // console.log(req.body);
+    try{
+        if(await (await userSchema.userModel.find(req.body)).length !=0){
+    await userSchema.userModel.deleteMany(req.body,(err,result)=>{
+        if(result){
+            res.send({status:200,message:"successful"})
+        }
+        else{
+            res.send("error")
+        }
+    }) }
+    else{
+        res.send({error:"enter valid query"})
+    }
+}
+    catch(err){
+        res.send({error:err});
+    }
+}
+const chargeWallet = async(req,res)=>{
+    try{
+    const id =req.dataObj._id;
+    const record = await userSchema.userModel.findOne({_id:id})
+    const existingBalance = record.wallet;
+    const valToBeAdded = req.body.valToBeAdded;
+    const newBalance = existingBalance + valToBeAdded;
+    await userSchema.userModel.findOneAndUpdate({_id:id},{wallet:newBalance},{new:true},(err,result)=>{
+        if(err) res.send("error")
+        else{   
+            res.send({status:200,message:"Balance Updated"})
+        }
+    })}
+    catch(err){
+              res.send({error:err});
+    }
+}
+const unchargeWallet = async (req,res)=>{
+    try{
+    const id =req.dataObj._id;
+    const record = await userSchema.userModel.findOne({_id:id})
+    const existingBalance = record.wallet;
+    const valToBeDeducted = req.body.valToBeDeducted;
+    const newBalance = existingBalance - valToBeDeducted;
+    await userSchema.userModel.findOneAndUpdate({_id:id},{wallet:newBalance},{new:true},(err,result)=>{
+        if(err) res.send("error")
+        else{
+            res.send({status:200,message:"Balance Updated"})
+        }
+    })
+}
+    catch(err){
+        res.send({error:err});
+    }
+}
 const authenticateToken = (req,res,next)=>{
     const authHeader = req.headers['authorization'];
     console.log(authHeader);
@@ -130,10 +219,16 @@ const authenticateToken = (req,res,next)=>{
         req.dataObj = dataObj;
         next();
     })
-}   
+}
 
 module.exports.login = login;
+module.exports.profile = profile;
 module.exports.signup = signup;
 module.exports.update = update;
 module.exports.findUser = findUser;
+module.exports.updateAll = updateAll;
+module.exports.deleteDoc = deleteDoc;
+module.exports.deleteMany = deleteMany;
+module.exports.chargeWallet = chargeWallet;
+module.exports.unchargeWallet = unchargeWallet;
 module.exports.authenticateToken = authenticateToken;

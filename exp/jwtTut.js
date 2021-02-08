@@ -27,7 +27,6 @@ app.get('/profile',authenticateToken,async (req,res)=>{
     res.send(await schema.userModel.findById(req.user._id))
     }
     catch (err) {console.log(err);}
-    
 })
 app.post('/update',authenticateToken,async (req,res)=>{
     console.log(req.dataObj);

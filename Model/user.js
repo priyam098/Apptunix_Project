@@ -24,6 +24,14 @@ phone: {
 date : {
     type : Date,
     required: false
+},
+age : {
+    type : Number,
+    required: true
+},
+wallet :{
+    type: Number,
+    default:0
 }
 });
 
