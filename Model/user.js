@@ -32,7 +32,8 @@ age : {
 wallet :{
     type: Number,
     default:0
-}
+},
+image: {type: String}
 });
 
 module.exports = mongoose.model('user',user); 

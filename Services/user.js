@@ -4,18 +4,49 @@ const joi = require('joi');
 const config = require('../config/dev')
 const jwt = require('jsonwebtoken')
 
-
 const joiValidSignUp = joi.object({
     Fname: joi.string().min(3).required(),
     Lname: joi.string().min(3).required(),
     age: joi.required(),
     password: joi.string().min(4).required(),
-    email: joi.string().email().lowercase().required()
+    email: joi.string().email().lowercase().required(),
+    image : joi.string()
 });
 const joiValidLogin = joi.object({
     password: joi.string().min(4).required(),
     email: joi.string().email().lowercase().required()
 });
+const single = async (req,res)=>{
+    try{
+        res.send({file:req.file,image:`http://localhost:3000/${req.file.filename}`});
+    }catch(err){
+        res.send(err);
+    }
+}
+const bulk = async (req,res)=>{
+    try{
+        let imagex;
+        // console.log('>>>>.',req.files);
+        let obj = req.files.map(cv => `http://localhost:3000/${cv.filename}`);
+        // req.files.map(cv => {imagex=`http://localhost:3000/${cv.filename}`});
+        console.log(imagex);
+        console.log(obj);
+        res.send({files:req.files,images:obj})  
+    }
+    catch(err){
+        res.send(err)
+    }
+}
+const fields = async(req,res)=>{
+    try{
+        console.log(req.body);
+        res.send(req.files);
+        
+    }
+    catch(err){
+        res.send(err);
+    }
+}
 const login = async (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
@@ -54,9 +85,9 @@ const profile = async (req,res)=>{
     const result = await userSchema.userModel.findById({_id:req.dataObj._id}).lean()
     // console.log({...result});
     // console.log("resy",result);
-    result["compute"] = 20;
-    console.log(result);
-    res.send(result);
+    // result["compute"] = 20;
+    console.log(result.image);
+    res.send({UserProfile:result,ProfilePic:`http://localhost:3000/${result.image}`})
     }
     catch (err) {
         res.send(console.log(err));
@@ -72,6 +103,10 @@ const signup = async (req, res) => {
         console.log('after hash');
         const email = req.body.email;
         const phone = req.body.phone;
+        if(req.file){
+            req.body.image = req.file.filename;
+        
+           }
 
         const dataObj = {
             Fname: Fname,
@@ -79,7 +114,8 @@ const signup = async (req, res) => {
             age: age,
             password: password,
             email: email,
-            phone: phone
+            phone: phone,
+            image:req.body.image
         };
         console.log(dataObj);
         await joiValidSignUp.validateAsync(req.body);
@@ -220,7 +256,9 @@ const authenticateToken = (req,res,next)=>{
         next();
     })
 }
-
+module.exports.fields = fields;
+module.exports.bulk = bulk;
+module.exports.single = single;
 module.exports.login = login;
 module.exports.profile = profile;
 module.exports.signup = signup;
